@@ -8,6 +8,16 @@ import (
 
 func main() {
 	client := blueconfigclient.NewClient("http://localhost:7891", "1234")
+	// fmt.Println(client.CreatePath("/peoples/bill"))
+	fmt.Println(client.GetNodes("/peoples"))
+	// fmt.Println(client.SetValue("/peoples/bill/city/bristol"))
+	fmt.Println(client.SetValue("/peoples/bill/state/RI"))
+	fmt.Println(client.GetValue("/peoples/bill/city"))
+	fmt.Println(client.GetValue("/peoples/bill/state"))
+	// fmt.Println(client.GetValue("/peoples/faisal/email"))
+	// fmt.Println(client.SetValue("peoples/faisal/email/sfi2k7@gmail.com"))
+	// fmt.Println(client.GetValue("/peoples/faisal/email"))
+	return
 	// value, err := client.GetValue("/peoples/faisal/name")
 	// if err != nil {
 	// 	fmt.Println("Error:", err)

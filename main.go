@@ -1,6 +1,7 @@
 package blueconfigclient
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,13 +30,13 @@ func NewClient(url, token string) *Client {
 	}
 }
 
-func (c *Client) makecall(endpoint, method string) (*Response, error) {
+func (c *Client) makecall(endpoint, method string, data ...map[string]string) (*Response, error) {
 
 	if c.Url == "" {
 		return nil, errors.New("url is empty")
 	}
 
-	var finalurl = c.Url + endpoint
+	var finalurl, _ = url.JoinPath(c.Url, endpoint)
 
 	parsedUrl, err := url.Parse(finalurl)
 	if err != nil {
@@ -48,9 +49,22 @@ func (c *Client) makecall(endpoint, method string) (*Response, error) {
 		parsedUrl.RawQuery = query.Encode()
 	}
 
-	req := &http.Request{
-		Method: method,
-		URL:    parsedUrl,
+	var req *http.Request
+	if method == http.MethodGet {
+		req = &http.Request{
+			Method: method,
+			URL:    parsedUrl,
+		}
+	}
+
+	if method == "POST" {
+		var jsoned []byte = []byte{}
+		if len(data) > 0 {
+			jsoned, _ = json.Marshal(data[0])
+		}
+
+		reader := bytes.NewReader(jsoned)
+		req, _ = http.NewRequest("POST", parsedUrl.String(), reader)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
@@ -88,8 +102,12 @@ func (c *Client) GetNodes(p string) ([]string, error) {
 		return []string{}, nil
 	}
 
-	nodes := response.Result.([]string)
-	return nodes, nil
+	nodes := response.Result.([]interface{})
+	var nodesS []string
+	for _, node := range nodes {
+		nodesS = append(nodesS, node.(string))
+	}
+	return nodesS, nil
 }
 
 func (c *Client) GetProps(p string) ([]string, error) {
@@ -161,6 +179,47 @@ func (c *Client) GetValues(p string) (map[string]string, error) {
 
 func (c *Client) SimpleGet(p string) (*Response, error) {
 	return c.makecall(p, "GET")
+}
+
+func (c *Client) CreatePath(p string) *Response {
+	if p == "" {
+		return &Response{Error: "path cannot be empty"}
+	}
+
+	p, _ = url.JoinPath(p, "/create")
+	response, err := c.makecall(p, "POST")
+	if err != nil {
+		return &Response{Error: err.Error()}
+	}
+
+	if response.Error != "" {
+		return &Response{Error: response.Error}
+	}
+
+	return nil
+}
+
+// func (c *Client) SaveObject(p string, o any) *Response{
+
+// }
+
+func (c *Client) SetValue(p string, v ...any) *Response {
+	if len(v) > 0 {
+		p = p + "/" + fmt.Sprint(v[0]) + "/set"
+	} else {
+		p = p + "/set"
+	}
+
+	response, err := c.makecall(p, "POST")
+	if err != nil {
+		return &Response{Error: err.Error()}
+	}
+
+	if response.Error != "" {
+		return &Response{Error: response.Error}
+	}
+
+	return nil
 }
 
 func (c *Client) GetValueInt(p string, or ...int) (int, error) {

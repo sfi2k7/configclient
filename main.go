@@ -78,7 +78,7 @@ func (c *Client) makecall(endpoint, method string, data ...map[string]string) (*
 		return nil, err
 	}
 
-	fmt.Println("response body:", string(body))
+	// fmt.Println("response body:", string(body))
 	var result Response
 	err = json.Unmarshal(body, &result)
 	if err != nil {
@@ -225,6 +225,22 @@ func (c *Client) SetValue(p string, v ...any) *Response {
 	}
 
 	return nil
+}
+
+func (c *Client) GetValueString(p string, or ...string) (string, error) {
+	value, err := c.GetValue(p)
+	if err != nil {
+		return "", err
+	}
+
+	if value == "" {
+		if len(or) > 0 {
+			return or[0], nil
+		}
+		return "", errors.New("value not found")
+	}
+
+	return value, nil
 }
 
 func (c *Client) GetValueInt(p string, or ...int) (int, error) {

@@ -37,7 +37,7 @@ func main() {
 	p := args[2]
 
 	c := configclient.NewClient(*remoteUrl, *remoteTokne)
-	fmt.Println("path:", p)
+	// fmt.Println("path:", p)
 	response, err := c.SimpleGet(p)
 	if err != nil {
 		fmt.Println("error:", err.Error())

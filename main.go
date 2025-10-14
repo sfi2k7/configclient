@@ -1,4 +1,4 @@
-package blueconfigclient
+package configclient
 
 import (
 	"bytes"
@@ -125,8 +125,13 @@ func (c *Client) GetProps(p string) ([]string, error) {
 		return []string{}, nil
 	}
 
-	props := response.Result.([]string)
-	return props, nil
+	props := response.Result.([]interface{})
+
+	var propsS []string
+	for _, prop := range props {
+		propsS = append(propsS, prop.(string))
+	}
+	return propsS, nil
 }
 
 func (c *Client) GetValue(p string) (string, error) {

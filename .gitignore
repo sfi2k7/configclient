@@ -1,4 +1,2 @@
-cmd/*/**
-cmd/**/*
-cmd/**
-cmd
+cmd/cmd
+cmd/cc/cc
